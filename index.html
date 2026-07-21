@@ -60,6 +60,11 @@
   const MAX_RADIUS_METERS = 200; // Geofence radius in meters
 
   let currentDistance = null;
+  let deviceId = localStorage.getItem('mps_device_id');
+if (!deviceId) {
+  deviceId = 'DEV-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+  localStorage.setItem('mps_device_id', deviceId);
+}
 
   // 2. SHOW/HIDE REASON FIELDS
   function toggleReasonField() {
@@ -128,7 +133,8 @@
       action: action,
       distance: currentDistance,
       reason: action === "Clock Out" ? document.getElementById("outReason").value : "N/A",
-      notes: action === "Clock Out" ? document.getElementById("notes").value.trim() : ""
+      notes: action === "Clock Out" ? document.getElementById("notes").value.trim() : "",
+      deviceId: deviceId
     };
 
     let pending = JSON.parse(localStorage.getItem("pendingClocks") || "[]");
