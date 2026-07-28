@@ -25,8 +25,44 @@
   <h2>Mpunzana Primary</h2>
   <div id="statusBox" class="status info">Detecting GPS location...</div>
 
-  <label for="staffName">Staff Name</label>
-  <input type="text" id="staffName" placeholder="Enter your full name">
+ <!-- Staff Name Dropdown Menu -->
+<div class="form-group">
+  <label for="staffName">Staff Name & Surname:</label>
+  <select id="staffName" name="staffName" required class="form-control">
+    <option value="" disabled selected>-- Select Your Name --</option>
+    
+    <!-- Academic Staff -->
+    <optgroup label="Academic Staff">
+      <option value="CHIKOVORE C">CHIKOVORE C</option>
+      <option value="FANKOMO T L">FANKOMO T L</option>
+      <option value="GWEBU S S">GWEBU S S</option>
+      <option value="LUBISI B C">LUBISI B C</option>
+      <option value="MAGOLEGO N K">MAGOLEGO N K</option>
+      <option value="MASEKO T T">MASEKO T T</option>
+      <option value="MHLANGA B M">MHLANGA B M</option>
+      <option value="MNISI R S">MNISI R S</option>
+      <option value="MUSHWANA G B">MUSHWANA G B</option>
+      <option value="NGOMANE G D">NGOMANE G D</option>
+      <option value="SHABALALA M E">SHABALALA M E</option>
+      <option value="SIBIYA M A">SIBIYA M A</option>
+      <option value="SIBIYA P">SIBIYA P</option>
+      <option value="TSHABALALA K L">TSHABALALA K L</option>
+    </optgroup>
+
+    <!-- E.C.D Staff -->
+    <optgroup label="E.C.D">
+      <option value="SAMBO V N">SAMBO V N</option>
+    </optgroup>
+
+    <!-- Support Staff -->
+    <optgroup label="Support Staff">
+      <option value="KHOZA L S">KHOZA L S</option>
+      <option value="KHOZA ST">KHOZA ST</option>
+      <option value="MASHEGO P D">MASHEGO P D</option>
+      <option value="MAHLANGU T P">MAHLANGU T P</option>
+    </optgroup>
+  </select>
+</div>
 
   <label for="action">Action</label>
   <select id="action" onchange="toggleReasonField()">
