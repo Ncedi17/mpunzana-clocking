@@ -135,7 +135,7 @@ if (!deviceId) {
 
           if (currentDistance <= MAX_RADIUS_METERS) {
             statusBox.className = "status success";
-            statusBox.innerText = `You are on-site (${currentDistance}m from school).`;
+            statusBox.innerText = `You are on-site (${currentDistance}m within school).`;
             clockBtn.disabled = false;
           } else {
             statusBox.className = "status error";
@@ -155,6 +155,10 @@ if (!deviceId) {
 
   // 5. SAVE ENTRY TO DEVICE LOCAL STORAGE
   function recordClock() {
+    const clockBtn = document.getElementById("clockBtn");
+  clockBtn.disabled = true;
+  clockBtn.innerText = "Submitting...";
+    
     const name = document.getElementById("staffName").value.trim();
     const action = document.getElementById("action").value;
 
