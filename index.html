@@ -68,6 +68,8 @@
   <select id="action" onchange="toggleReasonField()">
     <option value="Clock In">Clock In</option>
     <option value="Clock Out">Clock Out</option>
+    <option value="Sick Leave">Sick Leave</option>
+  <option value="Official Leave">Official Leave / Approved Absence</option>
   </select>
 
   <!-- Early Leave / Departure Reason Fields -->
@@ -103,11 +105,22 @@ if (!deviceId) {
 }
 
   // 2. SHOW/HIDE REASON FIELDS
-  function toggleReasonField() {
+ function toggleReasonField() {
     const action = document.getElementById("action").value;
     const reasonGroup = document.getElementById("reasonGroup");
+    const clockBtn = document.getElementById("clockBtn");
+    const statusBox = document.getElementById("statusBox");
+    
     reasonGroup.style.display = (action === "Clock Out") ? "block" : "none";
-  }
+
+    if (action === "Sick Leave" || action === "Official Leave") {
+        clockBtn.disabled = false;
+        statusBox.className = "status info";
+        statusBox.innerText = "Logging leave request remotely.";
+    } else {
+        checkLocation();
+    }
+}
 
   // 3. HAVERSINE FORMULA (Calculate GPS Distance)
   function getDistanceMeters(lat1, lon1, lat2, lon2) {
