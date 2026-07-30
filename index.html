@@ -176,81 +176,117 @@ if (!deviceId) {
     }
   }
 
-  // 5. SAVE ENTRY TO DEVICE LOCAL STORAGE
-  function recordClock() {
-    const clockBtn = document.getElementById("clockBtn");
-  clockBtn.disabled = true;
-  clockBtn.innerText = "Submitting...";
-    
-    const name = document.getElementById("staffName").value.trim();
-    const action = document.getElementById("action").value;
+ // Check for any unsaved offline entries when the app opens or comes back online
+window.addEventListener('online', syncOfflineEntries);
+document.addEventListener('DOMContentLoaded', syncOfflineEntries);
 
-    if (!name) {
-      alert("Please enter your name.");
-      return;
+function recordClock() {
+    const staffName = document.getElementById("staffName").value;
+    const action = document.getElementById("action").value;
+    const outReason = document.getElementById("outReason") ? document.getElementById("outReason").value : "";
+    const notes = document.getElementById("notes") ? document.getElementById("notes").value : "";
+    const clockBtn = document.getElementById("clockBtn");
+    const statusBox = document.getElementById("statusBox");
+
+    if (!staffName) {
+        alert("Please select your name.");
+        return;
     }
 
-    const entry = {
-      timestamp: new Date().toLocaleString("en-ZA"),
-      staffName: name,
-      action: action,
-      distance: currentDistance,
-      reason: action === "Clock Out" ? document.getElementById("outReason").value : "N/A",
-      notes: action === "Clock Out" ? document.getElementById("notes").value.trim() : "",
-      deviceId: deviceId
+    // Disable button to prevent double submissions
+    clockBtn.disabled = true;
+    clockBtn.innerText = "Submitting...";
+
+    const payload = {
+        staffName: staffName,
+        action: action,
+        outReason: outReason,
+        notes: notes,
+        deviceId: deviceId,
+        timestamp: new Date().toISOString(),
+        distance: currentDistance
     };
 
-    let pending = JSON.parse(localStorage.getItem("pendingClocks") || "[]");
-    pending.push(entry);
-    localStorage.setItem("pendingClocks", JSON.stringify(pending));
-
-    alert(`${action} recorded on device! Tap 'Sync' when connected to data/Wi-Fi.`);
-    updatePendingCount();
-
-    if (navigator.onLine) {
-      syncOfflineData();
-    }
-  }
-
-  // 6. UPLOAD STORED ENTRIES TO GOOGLE SHEETS
-  function syncOfflineData() {
-    let pending = JSON.parse(localStorage.getItem("pendingClocks") || "[]");
-    if (pending.length === 0) {
-      alert("No pending records to sync.");
-      return;
-    }
-
+    // Check if device is offline
     if (!navigator.onLine) {
-      alert("No internet connection detected. Try again when connected to Wi-Fi or data.");
-      return;
+        saveOfflineEntry(payload);
+        statusBox.className = "status warning";
+        statusBox.innerText = "⚠️ No internet connection! Entry saved on phone. It will automatically upload when data/Wi-Fi reconnects.";
+        clockBtn.innerText = "Saved Offline";
+        return;
     }
 
+    // Attempt to send data to Google Apps Script
     fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pending)
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
     })
     .then(() => {
-      localStorage.setItem("pendingClocks", "[]");
-      updatePendingCount();
-      alert("Successfully synced all records to Google Sheets!");
+        statusBox.className = "status success";
+        statusBox.style.backgroundColor = "#d4edda";
+        statusBox.style.color = "#155724";
+        statusBox.style.padding = "12px";
+        statusBox.style.borderRadius = "6px";
+        statusBox.innerText = `✅ SUCCESS! ${action} recorded for ${staffName} at ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}.`;
+        clockBtn.innerText = "Submitted Successfully!";
     })
-    .catch(err => {
-      alert("Sync failed. Records remain safely stored on this device.");
+    .catch((error) => {
+        console.error("Submission error:", error);
+        // If fetch fails, save locally as fallback
+        saveOfflineEntry(payload);
+        statusBox.className = "status warning";
+        statusBox.innerText = "⚠️ Connection interrupted. Saved safely to phone memory! Will sync automatically when network stabilizes.";
+        clockBtn.innerText = "Saved Offline";
     });
-  }
+}
 
-  function updatePendingCount() {
-    let pending = JSON.parse(localStorage.getItem("pendingClocks") || "[]");
-    document.getElementById("pendingCount").innerText = pending.length;
-  }
+// Save entry to LocalStorage if offline
+function saveOfflineEntry(entry) {
+    let offlineQueue = JSON.parse(localStorage.getItem('mps_offline_queue') || '[]');
+    offlineQueue.push(entry);
+    localStorage.getItem('mps_offline_queue');
+    localStorage.setItem('mps_offline_queue', JSON.stringify(offlineQueue));
+}
 
+// Push stored offline entries to Google Sheet when online
+function syncOfflineEntries() {
+    if (!navigator.onLine) return;
+    
+    let offlineQueue = JSON.parse(localStorage.getItem('mps_offline_queue') || '[]');
+    if (offlineQueue.length === 0) return;
+
+    const statusBox = document.getElementById("statusBox");
+    if (statusBox) {
+        statusBox.className = "status info";
+        statusBox.innerText = `🔄 Syncing ${offlineQueue.length} offline entry/entries to Google Sheets...`;
+    }
+
+    let promises = offlineQueue.map(entry => {
+        return fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(entry)
+        });
+    });
+
+    Promise.all(promises)
+        .then(() => {
+            localStorage.removeItem('mps_offline_queue');
+            if (statusBox) {
+                statusBox.className = "status success";
+                statusBox.innerText = "✅ Offline entries successfully synced to Google Sheets!";
+            }
+        })
+        .catch(err => console.error("Error syncing offline queue:", err));
+}
   window.onload = () => {
     checkLocation();
-    updatePendingCount();
-  };
+    syncOfflineEntries();
+};
+  
 </script>
-
 </body>
 </html>
