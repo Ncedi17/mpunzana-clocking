@@ -282,11 +282,17 @@ function syncOfflineEntries() {
         })
         .catch(err => console.error("Error syncing offline queue:", err));
 }
-  window.onload = () => {
+ window.onload = () => {
     checkLocation();
     syncOfflineEntries();
 };
-  
+
+// Register Service Worker for Offline PWA Capabilities
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registered successfully!', reg))
+        .catch(err => console.error('Service Worker registration failed:', err));
+}
 </script>
 </body>
 </html>
