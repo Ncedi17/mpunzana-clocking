@@ -203,7 +203,7 @@ function recordClock() {
         outReason: outReason,
         notes: notes,
         deviceId: deviceId,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleString("en-ZA", { timeZone: "Africa/Johannesburg" }),
         distance: currentDistance
     };
 
